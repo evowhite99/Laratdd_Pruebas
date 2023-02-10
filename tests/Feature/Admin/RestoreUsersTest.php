@@ -11,21 +11,30 @@ class RestoreUsersTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $defaultData = [
-        'first_name' => 'Pepe',
-        'last_name' => 'Pérez',
-        'email' => 'pepe@mail.es',
-        'password' => '123456',
-        'profession_id' => '',
-        'bio' => 'Programador de Laravel y Vue.js',
-        'twitter' => 'https://twitter.com/pepe',
-        'role' => 'user',
-        'state' => 'active',
-    ];
+
 
     /** @test */
     public function it_restore_the_user()
     {
+        $user = factory(User::class)->create([
+            'email' => 'alejandromagno@gmail.com',
+            'deleted_at' => now(),
+        ]);
 
+        $user->profile()->update([
+            'deleted_at' => now(),
+        ]);
+
+        $user->restore($user->id);
+        $user->profile()->restore($user->id);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'alejandromagno@gmail.com',
+            'deleted_at' => null,
+
+        ])->assertDatabaseHas('user_profiles', [
+            'deleted_at' => null,
+        ]);
     }
+
 }
